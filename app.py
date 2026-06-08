@@ -6,6 +6,7 @@ import os
 import requests
 from pathlib import Path
 from dotenv import load_dotenv
+from concurrent.futures import ThreadPoolExecutor
 
 # Load .env from parent dir or current dir
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
@@ -150,12 +151,11 @@ def build_output(name, age, theme, extra_details, language, progress=gr.Progress
     title = story["title"]
     scenes = story["scenes"]
 
-    scene_outputs = []
-    for i, scene in enumerate(scenes):
-        progress((0.2 + i * 0.2), desc=f"🎨 Painting scene {i+1} of {len(scenes)}...")
-        img = generate_illustration(scene["image_prompt"])
-        scene_outputs.append((img, scene["text"]))
+    progress(0.3, desc="🎨 Painting all scenes in parallel...")
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        imgs = list(executor.map(generate_illustration, [s["image_prompt"] for s in scenes]))
 
+    scene_outputs = list(zip(imgs, [s["text"] for s in scenes]))
     progress(1.0, desc="📖 Story complete!")
 
     # Build storybook markdown
@@ -228,7 +228,7 @@ with gr.Blocks(theme=theme_config, css=CSS, title="🌙 Bedtime Story Machine") 
             ---
             **How it works:** AI writes a unique 4-scene story with your child as the hero, then paints a watercolor illustration for each scene.
 
-            *~30 seconds to generate*
+            *~20-30 seconds to generate*
             """)
 
         with gr.Column(scale=2):

@@ -9,24 +9,29 @@ app = modal.App("bedtime-story-machine")
 
 image = (
     modal.Image.debian_slim(python_version="3.11")
-    .pip_install("vllm==0.8.5", "huggingface_hub")
+    .pip_install(
+        "vllm==0.6.6.post1",
+        "torch==2.5.1",
+        "transformers==4.47.1",
+        "huggingface_hub",
+    )
 )
 
 MODEL_NAME = "nvidia/Nemotron-Mini-4B-Instruct"
+
 
 @app.cls(
     image=image,
     gpu="T4",
     timeout=300,
-    container_idle_timeout=120,
+    scaledown_window=120,
     secrets=[modal.Secret.from_name("huggingface-secret")],
 )
 class NemotronModel:
     @modal.enter()
     def load_model(self):
-        from vllm import LLM, SamplingParams
-        self.llm = LLM(model=MODEL_NAME, max_model_len=2048)
-        self.sampling_params = SamplingParams(temperature=0.8, max_tokens=1024)
+        from vllm import LLM
+        self.llm = LLM(model=MODEL_NAME, max_model_len=2048, dtype="half")
 
     @modal.method()
     def generate(self, prompt: str) -> str:
@@ -35,11 +40,10 @@ class NemotronModel:
         outputs = self.llm.generate([prompt], params)
         return outputs[0].outputs[0].text
 
-    @modal.web_endpoint(method="POST")
+    @modal.fastapi_endpoint(method="POST")
     def chat(self, request: dict) -> dict:
         from vllm import SamplingParams
         messages = request.get("messages", [])
-        # Format as chat
         prompt = ""
         for msg in messages:
             role = msg["role"]
