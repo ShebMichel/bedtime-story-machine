@@ -3,6 +3,7 @@ from huggingface_hub import InferenceClient
 import json
 import re
 import os
+import requests
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -12,11 +13,38 @@ load_dotenv()
 
 token = os.environ.get("HF_TOKEN") or os.environ.get("HF_API_KEY")
 
+# Modal endpoint for NVIDIA Nemotron-Mini-4B-Instruct
+MODAL_ENDPOINT = os.environ.get("MODAL_ENDPOINT", "")
+# Fallback to HF Inference API if Modal is unavailable
 text_client = InferenceClient(provider="together", token=token)
 image_client = InferenceClient(provider="hf-inference", token=token)
 
-STORY_MODEL = "Qwen/Qwen2.5-7B-Instruct"
+STORY_MODEL = "nvidia/Nemotron-Mini-4B-Instruct"  # via Modal
+FALLBACK_MODEL = "Qwen/Qwen2.5-7B-Instruct"  # via HF Inference
 IMAGE_MODEL = "black-forest-labs/FLUX.1-schnell"
+
+
+def call_llm(messages, temperature=0.8, max_tokens=1024):
+    """Call Nemotron via Modal, fallback to Qwen via HF Inference."""
+    if MODAL_ENDPOINT:
+        try:
+            r = requests.post(
+                MODAL_ENDPOINT,
+                json={"messages": messages, "temperature": temperature, "max_tokens": max_tokens},
+                timeout=60,
+            )
+            r.raise_for_status()
+            return r.json()["choices"][0]["message"]["content"]
+        except Exception:
+            pass  # Fall through to HF Inference
+    # Fallback
+    response = text_client.chat_completion(
+        model=FALLBACK_MODEL,
+        messages=messages,
+        max_tokens=max_tokens,
+        temperature=temperature,
+    )
+    return response.choices[0].message.content
 
 CSS = """
 .storybook-header {
@@ -87,14 +115,13 @@ Requirements:
 Return ONLY valid JSON in this exact format, no other text:
 {{"title": "Story Title in {language}", "scenes": [{{"text": "Scene text in {language} here", "image_prompt": "A children's book illustration of: brief visual description in English, soft watercolor style, warm colors, whimsical"}}]}}"""
 
-    response = text_client.chat_completion(
-        model=STORY_MODEL,
+    response = call_llm(
         messages=[{"role": "user", "content": prompt}],
         max_tokens=1024,
         temperature=0.8,
     )
 
-    content = response.choices[0].message.content.strip()
+    content = response.strip()
     match = re.search(r'\{.*\}', content, re.DOTALL)
     if match:
         content = match.group()
@@ -232,8 +259,8 @@ with gr.Blocks(theme=theme_config, css=CSS, title="🌙 Bedtime Story Machine") 
 
     gr.HTML("""
     <div style="text-align:center; padding:1rem; color:#6b7280; font-size:0.85rem;">
-        Built with 🤗 Hugging Face Inference API · Story: Qwen2.5-7B-Instruct (7B) · Art: FLUX.1-schnell (12B) · Total: ~19B params<br>
-        <strong>Build Small Hackathon</strong> — Thousand Token Wood 🍄
+        Built with 🤗 Hugging Face Inference API · Story: NVIDIA Nemotron-Mini-4B-Instruct (4B) · Art: FLUX.1-schnell (12B) · Total: ~16B params<br>
+        <strong>Build Small Hackathon</strong> — Thousand Token Wood 🍄 · Powered by <strong>Modal</strong>
     </div>
     """)
 

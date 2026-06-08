@@ -14,6 +14,9 @@ tags:
   - thousand-token-wood
   - storytelling
   - children
+  - nvidia
+  - nemotron
+  - modal
 ---
 
 # 🌙 Bedtime Story Machine
@@ -34,19 +37,44 @@ A personalized illustrated bedtime story generator, crafted just for your little
 ## How it works
 
 1. Enter your child's name, age, and pick a theme
-2. AI writes a gentle 4-scene bedtime story with your child as the protagonist
-3. Each scene gets a beautiful watercolor-style illustration
-4. Read it together at bedtime! 🛏️
+2. Choose a language (English or Français)
+3. AI writes a gentle 4-scene bedtime story with your child as the protagonist
+4. Each scene gets a beautiful watercolor-style illustration
+5. Read it together at bedtime! 🛏️
 
 ## Models Used (≤32B total)
 
-- **Story Generation**: [Qwen/Qwen2.5-7B-Instruct](https://huggingface.co/Qwen/Qwen2.5-7B-Instruct) (7B params)
+- **Story Generation**: [nvidia/Nemotron-Mini-4B-Instruct](https://huggingface.co/nvidia/Nemotron-Mini-4B-Instruct) (4B params) — via Modal
 - **Illustrations**: [black-forest-labs/FLUX.1-schnell](https://huggingface.co/black-forest-labs/FLUX.1-schnell) (12B params)
-- **Total**: ~19B parameters ✅
+- **Total**: ~16B parameters ✅
+
+## Infrastructure
+
+- **Modal** — Serves Nemotron-4B on T4 GPU with vLLM
+- **HF Inference API** — FLUX.1-schnell for image generation
+- **Gradio** — Custom-styled frontend
+- **Hugging Face Spaces** — Hosting
 
 ## Track
 
 🍄 **Thousand Token Wood** — Build something delightful that wouldn't exist without AI.
+
+## Badges Targeted
+
+| Badge | Status |
+|-------|--------|
+| 🟩 NVIDIA Nemotron Quest | ✅ Uses Nemotron-Mini-4B |
+| 🐜 Tiny Titan (≤4B) | ✅ Story model is 4B params |
+| 🟢 Modal Awards | ✅ Deployed on Modal |
+| 📓 Field Notes | ✅ [Blog post](https://huggingface.co/spaces/build-small-hackathon/bedtime-story-machine/discussions/1) |
+| 📡 Sharing is Caring | ✅ [Agent trace](https://huggingface.co/datasets/build-small-hackathon/bedtime-story-machine-trace) |
+
+## Links
+
+- 🚀 [Live App](https://huggingface.co/spaces/build-small-hackathon/bedtime-story-machine)
+- 📓 [Blog Post](https://huggingface.co/spaces/build-small-hackathon/bedtime-story-machine/discussions/1)
+- 📡 [Agent Trace](https://huggingface.co/datasets/build-small-hackathon/bedtime-story-machine-trace)
+- 💻 [GitHub](https://github.com/ShebMichel/bedtime-story-machine)
 
 ## Built for
 
