@@ -20,6 +20,12 @@ tags:
 
 A personalized illustrated bedtime story generator, crafted just for your little one.
 
+## Demo
+
+https://github.com/user-attachments/assets/bedtime_story.mp4
+
+https://github.com/ShebMichel/bedtime-story-machine/raw/main/bedtime_story.mp4
+
 ## How it works
 
 1. Enter your child's name, age, and pick a theme
