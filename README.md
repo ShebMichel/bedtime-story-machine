@@ -22,7 +22,14 @@ A personalized illustrated bedtime story generator, crafted just for your little
 
 ## Demo
 
-<video src="https://github.com/ShebMichel/bedtime-story-machine/raw/main/bedtime_story.mp4" controls autoplay muted loop width="100%"></video>
+
+
+
+
+
+
+
+<video src="https://github.com/user-attachments/assets/835aab78-4e4b-47b6-a3ae-2a1e5015d0cb" controls autoplay muted loop width="100%"></video>
 
 ## How it works
 
