@@ -7,6 +7,8 @@ import requests
 from pathlib import Path
 from dotenv import load_dotenv
 from concurrent.futures import ThreadPoolExecutor
+from gtts import gTTS
+import tempfile
 
 # Load .env from parent dir or current dir
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
@@ -172,6 +174,21 @@ def build_output(name, age, theme, extra_details, language, progress=gr.Progress
     )
 
 
+def read_aloud(text1, text2, text3, text4, language):
+    """Convert story text to speech."""
+    # Extract plain text from HTML divs
+    import re as _re
+    texts = [_re.sub(r'<[^>]+>', '', t) for t in [text1, text2, text3, text4] if t]
+    full_text = " ... ".join(texts)
+    if not full_text.strip():
+        raise gr.Error("Generate a story first!")
+    lang = "fr" if language == "Français" else "en"
+    tts = gTTS(full_text, lang=lang, slow=True)
+    tmp = tempfile.NamedTemporaryFile(suffix=".mp3", delete=False)
+    tts.save(tmp.name)
+    return tmp.name
+
+
 # --- UI ---
 theme_config = gr.themes.Soft(
     primary_hue="purple",
@@ -251,10 +268,19 @@ with gr.Blocks(theme=theme_config, css=CSS, title="🌙 Bedtime Story Machine") 
                     text4 = gr.HTML()
                     img4 = gr.Image(show_label=False, container=False)
 
+            read_btn = gr.Button("🔊 Read Aloud", variant="secondary", size="lg")
+            audio_output = gr.Audio(label="Story Narration", type="filepath")
+
     generate_btn.click(
         fn=build_output,
         inputs=[name_input, age_input, theme_input, extra_input, language_input],
         outputs=[title_output, img1, text1, img2, text2, img3, text3, img4, text4],
+    )
+
+    read_btn.click(
+        fn=read_aloud,
+        inputs=[text1, text2, text3, text4, language_input],
+        outputs=[audio_output],
     )
 
     gr.HTML("""
